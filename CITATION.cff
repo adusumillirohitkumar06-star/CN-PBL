@@ -1,0 +1,19 @@
+cff-version: 1.2.0
+title: "Syntactica: Neural Protocol Grammar for DNS"
+message: "If you use this software, please cite it as below."
+type: software
+authors:
+  - family-names: "K"
+    given-names: "Satya Sai Nischal"
+repository-code: "https://github.com/cattolatte/syntactica"
+url: "https://cattolatte.github.io/syntactica/"
+license: MIT
+version: 0.1.0
+date-released: 2025-08-29
+keywords:
+  - dns
+  - network-security
+  - anomaly-detection
+  - language-model
+  - fuzzing
+  - computer-networks

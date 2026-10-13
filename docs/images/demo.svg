@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 520" width="920" height="520" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" role="img" aria-label="Terminal demo: capture DNS with tshark, then analyze with syntactica">
+  <defs>
+    <style>
+      text { font-size: 15px; }
+      .l { opacity: 0; animation: rise .01s linear forwards; }
+      @keyframes rise { to { opacity: 1; } }
+      .cur { animation: blink 1s steps(1) infinite; }
+      @keyframes blink { 50% { opacity: 0; } }
+      .prompt { fill:#2dd4bf; } .cmd { fill:#e6edf3; } .out { fill:#9aa4b2; }
+      .ok { fill:#3fb950; } .warn { fill:#ff7b72; } .dim { fill:#6e7681; }
+      .num { fill:#d2a8ff; } .tag { fill:#f0b429; }
+    </style>
+  </defs>
+  <rect width="920" height="520" rx="12" fill="#0d1117" stroke="#30363d"/>
+  <rect width="920" height="40" rx="12" fill="#161b22"/>
+  <rect y="28" width="920" height="12" fill="#161b22"/>
+  <circle cx="24" cy="20" r="6" fill="#ff5f56"/>
+  <circle cx="46" cy="20" r="6" fill="#ffbd2e"/>
+  <circle cx="68" cy="20" r="6" fill="#27c93f"/>
+  <text x="460" y="25" text-anchor="middle" class="dim" font-size="13">syntactica &#8212; analyze a real capture</text>
+
+  <g transform="translate(24,72)">
+    <text class="l" style="animation-delay:.2s"><tspan class="prompt">$ </tspan><tspan class="cmd">scripts/capture.sh en0 500 dns.pcap</tspan></text>
+    <text y="26" class="l out" style="animation-delay:.9s">  Capturing 500 DNS packets on 'en0' with tshark &#8594; dns.pcap <tspan class="ok">&#10003;</tspan></text>
+
+    <text y="64" class="l" style="animation-delay:1.5s"><tspan class="prompt">$ </tspan><tspan class="cmd">syntactica analyze dns.pcap</tspan></text>
+    <text y="92"  class="l out" style="animation-delay:2.1s">  capture: dns.pcap</text>
+    <text y="116" class="l out" style="animation-delay:2.4s">  DNS messages: <tspan class="num">4128</tspan>    queries analysed: <tspan class="num">3981</tspan></text>
+    <text y="140" class="l out" style="animation-delay:2.7s">  UDP checksum failures: <tspan class="num">0</tspan>   <tspan class="dim">(CRC / RFC-1071 verified)</tspan></text>
+    <text y="164" class="l out" style="animation-delay:3.0s">  conformance threshold: <tspan class="num">1.84</tspan> nats/token</text>
+    <text y="188" class="l out" style="animation-delay:3.3s">  flagged as anomalous: <tspan class="warn">42</tspan> (1.1%)</text>
+
+    <text y="222" class="l dim" style="animation-delay:3.7s">  top least-conforming queries:</text>
+    <text y="248" class="l out" style="animation-delay:4.1s">    <tspan class="warn">5.12</tspan>  mfrggzdf&#8230;q2lk.tunnel.example.com   <tspan class="tag">[LEN=xxl]</tspan> <tspan class="dim">&#8592; DNS tunnelling</tspan></text>
+    <text y="272" class="l out" style="animation-delay:4.4s">    <tspan class="warn">4.63</tspan>  kquevxzmbnrtplahsyw.com             <tspan class="tag">[q]</tspan>       <tspan class="dim">&#8592; DGA (C2)</tspan></text>
+    <text y="296" class="l out" style="animation-delay:4.7s">    <tspan class="warn">3.90</tspan>  a&#65533;b&#65533;c.example.net                  <tspan class="tag">[&lt;oovc&gt;]</tspan>  <tspan class="dim">&#8592; malformed</tspan></text>
+
+    <text y="336" class="l" style="animation-delay:5.2s"><tspan class="prompt">$ </tspan><tspan class="cur cmd">&#9608;</tspan></text>
+  </g>
+
+  <text x="24" y="500" class="dim" font-size="12">Runs locally on your own Wireshark/tshark capture &#183; pure-Python pcap reader (.pcap + pcapng)</text>
+</svg>

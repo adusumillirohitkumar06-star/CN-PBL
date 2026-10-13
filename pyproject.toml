@@ -1,0 +1,48 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "syntactica"
+version = "0.1.0"
+description = "Neural protocol grammar for DNS: anomaly detection, grammar extraction, and grammar-guided fuzzing."
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+keywords = ["dns", "network-security", "anomaly-detection", "language-model", "fuzzing", "computer-networks"]
+authors = [{ name = "K Satya Sai Nischal" }]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Topic :: Security",
+    "Topic :: System :: Networking :: Monitoring",
+    "Intended Audience :: Science/Research",
+]
+dependencies = ["numpy>=1.23", "scikit-learn>=1.1"]
+
+[project.optional-dependencies]
+nn = ["torch>=2.0"]
+viz = ["matplotlib>=3.5"]
+dev = ["pytest>=7.0", "ruff>=0.1"]
+
+[project.scripts]
+syntactica = "syntactica.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/cattolatte/syntactica"
+Documentation = "https://github.com/cattolatte/syntactica/tree/main/docs"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py39"
+
+[tool.ruff.lint]
+# Pin the rule set explicitly so linting is deterministic across ruff versions.
+select = ["E", "F", "W", "I"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"

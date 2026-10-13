@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Syntactica — Neural Protocol Grammar for DNS</title>
+  <meta name="description" content="Learn the grammar of benign DNS traffic, flag what breaks the rules, and fuzz for what breaks the parser." />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%236d4aff'/%3E%3Ctext x='16' y='23' font-size='20' text-anchor='middle' fill='white' font-family='monospace' font-weight='bold'%3ES%3C/text%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="hero">
+    <button class="theme-toggle" id="themeToggle" title="Toggle theme">◐</button>
+    <div class="wrap hero-inner">
+      <div class="brand">
+        <div class="brand-mark">S</div>
+        <h1>Syntactica</h1>
+      </div>
+      <h2>Every protocol is a <span class="grad">grammar</span>.<br />We learn it, then catch what breaks the rules.</h2>
+      <p class="lede">
+        A language model learns the grammar of <em>benign</em> DNS traffic. Anything improbable under that
+        grammar &mdash; tunnelling, algorithmically-generated domains, malformed packets &mdash; is flagged by its
+        own surprisal, with no attack labels used to train the detector. The same grammar is then turned around
+        to fuzz a resolver.
+      </p>
+      <div class="hero-badges" id="heroBadges">
+        <span class="chip">loading metrics&hellip;</span>
+      </div>
+      <nav class="pill-nav">
+        <a href="#try">Try it live</a>
+        <a href="#models">Detection</a>
+        <a href="#represent">Representation</a>
+        <a href="#grammar">Grammar</a>
+        <a href="#defense">Defence</a>
+        <a href="#learn">Self-learning</a>
+        <a href="#fuzz">Fuzzing</a>
+        <a href="#examples">Explanations</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <!-- LIVE SCORER -->
+    <section id="try">
+      <p class="eyebrow">Interactive</p>
+      <h3 class="section-title">Score a domain against the learned grammar</h3>
+      <p class="section-sub">
+        The fitted n-gram grammar runs entirely in your browser &mdash; the same model and scoring the Python
+        pipeline uses. Type any domain, or try one of the presets, and watch the per-token surprisal light up the
+        part of the name that breaks the grammar.
+      </p>
+      <div class="card scorer">
+        <div class="inputrow">
+          <input type="text" id="domainInput" value="www.example.com" spellcheck="false" autocomplete="off" />
+          <select id="qtypeSelect" title="Query type">
+            <option value="1">A</option>
+            <option value="28">AAAA</option>
+            <option value="16">TXT</option>
+            <option value="15">MX</option>
+            <option value="5">CNAME</option>
+            <option value="2">NS</option>
+          </select>
+          <button class="btn" id="scoreBtn">Score</button>
+        </div>
+        <div class="samples" id="samples"></div>
+        <div id="verdict"></div>
+        <div>
+          <div class="tokens" id="tokenHeat"></div>
+          <div class="legend">
+            <span>low surprisal</span><span class="bar"></span><span>high surprisal (grammar violation)</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- MODELS / DETECTION -->
+    <section id="models">
+      <p class="eyebrow">Detection</p>
+      <h3 class="section-title">Benign-only training, zero-day-ready detection</h3>
+      <p class="section-sub">
+        Both grammars are calibrated on benign traffic at the 99th percentile of surprisal; attack labels are used
+        only to <em>measure</em>. We report threshold-free separability (ROC / PR AUC) and per-family recall &mdash;
+        not a single inflated accuracy number.
+      </p>
+      <div class="grid cols-4" id="statCards"></div>
+      <div class="grid cols-2" style="margin-top:16px">
+        <div class="card">
+          <h4>ROC &mdash; benign vs. attack</h4>
+          <p class="muted">True-positive rate against false-positive rate across all thresholds.</p>
+          <div id="rocChart"></div>
+        </div>
+        <div class="card">
+          <h4>Per-family detection rate</h4>
+          <p class="muted">Recall at the benign-calibrated operating point, by attack family.</p>
+          <div id="familyBars"></div>
+        </div>
+      </div>
+      <div class="card" style="margin-top:16px">
+        <h4>Surprisal distribution</h4>
+        <p class="muted">Where benign traffic sits versus each attack family under the n-gram grammar. Clean separation is the whole game.</p>
+        <div id="histChart"></div>
+      </div>
+      <div class="card" style="margin-top:16px">
+        <h4>Conformal operating points <span class="muted">(distribution-free FPR guarantee)</span></h4>
+        <p class="muted">
+          Split-conformal calibration on held-out benign traffic sets a threshold whose false-positive rate is
+          provably &le; &alpha; &mdash; no Gaussian assumption. Pick your &alpha;; the empirical FPR stays under it
+          while recall stays high.
+        </p>
+        <div style="overflow-x:auto"><table class="conf-table" id="conformalTable"></table></div>
+      </div>
+    </section>
+
+    <!-- LEARNED REPRESENTATION -->
+    <section id="represent">
+      <p class="eyebrow">Representation learning</p>
+      <h3 class="section-title">What the Transformer learned</h3>
+      <p class="section-sub">
+        Each query is embedded by the Transformer into a vector it uses to judge conformance. Projecting those
+        embeddings to 2D (PCA) shows the model has organised traffic into regions on its own &mdash; benign on one
+        side, tunnelling cleanly separated, DGA and malformed in between. No labels were used to learn this.
+      </p>
+      <div class="card">
+        <h4>Learned flow embeddings <span class="muted">(2D PCA projection)</span></h4>
+        <div id="embedChart"></div>
+        <div class="legend" id="embedLegend"></div>
+      </div>
+    </section>
+
+    <!-- EXTRACTED GRAMMAR -->
+    <section id="grammar">
+      <p class="eyebrow">Interpretability</p>
+      <h3 class="section-title">The grammar we extracted</h3>
+      <p class="section-sub">
+        A black-box detector is hard to trust. Syntactica recovers a human-readable stochastic automaton over the
+        <em>shape</em> of domain names &mdash; the sequence of label-length buckets. Each cell is the probability of
+        moving from one state (row) to the next (column) in benign traffic. Attacks take transitions this matrix
+        makes rare.
+      </p>
+      <div class="card">
+        <h4>Label-length transition matrix <span class="muted">(first-order Markov chain)</span></h4>
+        <div id="automaton"></div>
+        <p class="muted" id="automatonCaption" style="margin-top:12px"></p>
+      </div>
+    </section>
+
+    <!-- CLOSED-LOOP DEFENSE -->
+    <section id="defense">
+      <p class="eyebrow">Response &middot; Unit IV</p>
+      <h3 class="section-title">From detection to defence: a token-bucket that protects goodput</h3>
+      <p class="section-sub">
+        Detecting is half the job. Syntactica feeds each verdict into a per-source <strong>token bucket</strong>
+        (the Unit IV traffic-policing algorithm): a query&rsquo;s token cost scales with its surprisal, so a source
+        flooding high-surprisal exfil queries drains its bucket and is throttled, while ordinary clients sail through.
+        Below, one exfil channel floods 12 legitimate clients.
+      </p>
+      <div class="grid cols-3" id="mitigationCards"></div>
+      <div class="card" style="margin-top:16px">
+        <h4>Admitted vs. dropped over time <span class="muted">(adaptive policy)</span></h4>
+        <p class="muted">Legitimate traffic (green) is admitted throughout; the exfil flood (red) is dropped almost entirely.</p>
+        <div id="mitigationChart"></div>
+        <div class="legend" id="mitigationLegend"></div>
+      </div>
+    </section>
+
+    <!-- ONLINE SELF-LEARNING -->
+    <section id="learn">
+      <p class="eyebrow">Self-learning</p>
+      <h3 class="section-title">It keeps learning &mdash; and stops crying wolf</h3>
+      <p class="section-sub">
+        Real networks drift: a new internal service appears and a <em>frozen</em> detector suddenly flags all of it.
+        The online detector keeps learning from the stream (self-training, with a repetition gate so an attack flood
+        can&rsquo;t poison it) and absorbs the change. Below, benign traffic shifts at the dashed line.
+      </p>
+      <div class="grid cols-3" id="onlineCards"></div>
+      <div class="card" style="margin-top:16px">
+        <h4>False-alarm rate over time <span class="muted">(benign traffic; lower is better)</span></h4>
+        <p class="muted">When traffic shifts, the static model&rsquo;s false alarms jump to ~100% and stay there; the self-learning model stays near zero &mdash; while both keep catching attacks.</p>
+        <div id="onlineChart"></div>
+        <div class="legend" id="onlineLegend"></div>
+      </div>
+    </section>
+
+    <!-- FUZZING -->
+    <section id="fuzz">
+      <p class="eyebrow">Offense</p>
+      <h3 class="section-title">The grammar fuzzes, too</h3>
+      <p class="section-sub">
+        Sampling from the learned grammar at temperature <em>T</em> reproduces the validity/novelty tradeoff of
+        grammar-guided fuzzing (Learn&amp;Fuzz, ASE&rsquo;17): low <em>T</em> exercises the parser&rsquo;s happy path;
+        high <em>T</em> drifts toward the boundary. All traffic is sent to a bundled loopback-only mock resolver.
+      </p>
+      <div class="card">
+        <h4>Validity &amp; novelty vs. sampling temperature</h4>
+        <div id="fuzzChart"></div>
+        <div class="legend">
+          <span style="color:var(--accent)">&#9632;</span><span>validity (resolver accepts)</span>
+          <span style="color:var(--primary);margin-left:12px">&#9632;</span><span>novelty (drift from grammar)</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- EXAMPLES -->
+    <section id="examples">
+      <p class="eyebrow">Explanations</p>
+      <h3 class="section-title">Worked examples: where the grammar broke</h3>
+      <p class="section-sub">
+        For each family, the single most surprising token &mdash; the grammar&rsquo;s &ldquo;smoking gun&rdquo; &mdash; is
+        highlighted. An explanation grounded in the protocol, not a saliency map.
+      </p>
+      <div id="examplesList"></div>
+    </section>
+
+    <footer>
+      <p>
+        <strong>Syntactica</strong> &mdash; Computer Networks PBL. All figures are reproduced from a single seed by
+        <code>syntactica report</code>. Generated <span id="genAt">&mdash;</span> &middot; run in
+        <span id="genSec">&mdash;</span>s. Serve locally with <code>python -m http.server</code> from the
+        <code>dashboard/</code> directory.
+      </p>
+    </footer>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>

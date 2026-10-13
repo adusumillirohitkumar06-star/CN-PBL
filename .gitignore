@@ -1,0 +1,43 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.installed.cfg
+*.egg
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Tooling caches
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+.tox/
+
+# Model checkpoints & large artefacts
+*.pt
+*.pth
+*.ckpt
+
+# Local captures (bring your own; do not commit potentially sensitive traffic)
+*.pcap
+*.pcapng
+data/captures/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+
+# Workflows (requires workflow scope on PAT)
+.github/
